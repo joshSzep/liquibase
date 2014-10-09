@@ -85,6 +85,9 @@ public class Main {
     protected String logLevel;
     protected String logFile;
 
+    protected String outFile;
+    protected String errFile;
+
     protected Map<String, Object> changeLogParameters = new HashMap<String, Object>();
 
 	public static void main(String args[]) throws CommandLineParsingException, IOException {
@@ -120,6 +123,18 @@ public class Main {
 
             try {
                 main.parseOptions(args);
+
+                try {
+                    if (main.outFile != null) {
+                        System.setOut(new PrintStream(new File(main.outFile)));
+                    }
+                    if (main.errFile != null) {
+                        System.setErr(new PrintStream(new File(main.errFile)));
+                    }
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
             } catch (CommandLineParsingException e) {
 	            // Print the help before throwing the exception
                 main.printHelp(Arrays.asList(e.getMessage()), System.err);
@@ -565,6 +580,8 @@ public class Main {
         stream.println(" --logLevel=<level>                         Execution log level");
         stream.println("                                            (debug, info, warning, severe, off");
         stream.println(" --logFile=<file>                           Log file");
+        stream.println(" --outFile=<file>                           Redirect stdout to a file");
+        stream.println(" --errFile=<file>                           Redirect stderr to a file");
         stream.println(" --currentDateTimeFunction=<value>          Overrides current date time function");
         stream.println("                                            used in SQL.");
         stream.println("                                            Useful for unsupported databases");
