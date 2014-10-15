@@ -107,17 +107,17 @@ public class UniqueConstraintSnapshotGenerator extends JdbcSnapshotGenerator {
                     "and const.constraint_name='" + database.correctObjectName(name, UniqueConstraint.class) + "'" +
                     "order by ordinal_position";
         } else if (database.getShortName() == "redshift") {
-            sql = "SELECT a.conname as CONSTRAINT_NAME, d.attname AS COLUMN_NAME\n" +
-                    "FROM pg_catalog.pg_constraint a\n" +
-                    "JOIN pg_catalog.pg_class b\n" +
-                    "ON(a.conrelid=b.oid)\n" +
-                    "JOIN pg_catalog.pg_namespace c\n" +
-                    "ON(a.connamespace=c.oid)\n" +
-                    "JOIN pg_catalog.pg_attribute d\n" +
-                    "ON(d.attnum = ANY(a.conkey) AND a.conrelid=d.attrelid)\n" +
+            sql = "SELECT a.conname as CONSTRAINT_NAME, d.attname AS COLUMN_NAME " +
+                    "FROM pg_catalog.pg_constraint a " +
+                    "JOIN pg_catalog.pg_class b " +
+                    "ON(a.conrelid=b.oid) " +
+                    "JOIN pg_catalog.pg_namespace c " +
+                    "ON(a.connamespace=c.oid) " +
+                    "JOIN pg_catalog.pg_attribute d " +
+                    "ON(d.attnum = ANY(a.conkey) AND a.conrelid=d.attrelid) " +
                     "WHERE c.nspname='" + database.correctObjectName(schema.getSchema().getName(), Schema.class) + "' " +
                     "AND b.relname='" + database.correctObjectName(example.getTable().getName(), Table.class) + "' " +
-                    "AND a.conname='" + database.correctObjectName(name, UniqueConstraint.class) + "'\n" +
+                    "AND a.conname='" + database.correctObjectName(name, UniqueConstraint.class) + "' " +
                     "ORDER BY d.attnum";
         } else if (database instanceof PostgresDatabase) {
             sql = "select const.CONSTRAINT_NAME, COLUMN_NAME " +
