@@ -10,6 +10,7 @@ import liquibase.statement.core.RawSqlStatement;
 import liquibase.structure.DatabaseObject;
 import liquibase.structure.core.*;
 import liquibase.util.StringUtils;
+import org.apache.commons.logging.Log;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -105,18 +106,31 @@ public class UniqueConstraintSnapshotGenerator extends JdbcSnapshotGenerator {
                     "and const.table_name='" + database.correctObjectName(example.getTable().getName(), Table.class) + "' " +
                     "and const.constraint_name='" + database.correctObjectName(name, UniqueConstraint.class) + "'" +
                     "order by ordinal_position";
+        } else if (database.getShortName() == "redshift") {
+            sql = "SELECT a.conname as CONSTRAINT_NAME, d.attname AS COLUMN_NAME\n" +
+                    "FROM pg_catalog.pg_constraint a\n" +
+                    "JOIN pg_catalog.pg_class b\n" +
+                    "ON(a.conrelid=b.oid)\n" +
+                    "JOIN pg_catalog.pg_namespace c\n" +
+                    "ON(a.connamespace=c.oid)\n" +
+                    "JOIN pg_catalog.pg_attribute d\n" +
+                    "ON(d.attnum = ANY(a.conkey) AND a.conrelid=d.attrelid)\n" +
+                    "WHERE c.nspname='" + database.correctObjectName(schema.getSchema().getName(), Schema.class) + "' " +
+                    "AND b.relname='" + database.correctObjectName(example.getTable().getName(), Table.class) + "' " +
+                    "AND a.conname='" + database.correctObjectName(name, UniqueConstraint.class) + "'\n" +
+                    "ORDER BY d.attnum";
         } else if (database instanceof PostgresDatabase) {
-                sql = "select const.CONSTRAINT_NAME, COLUMN_NAME " +
-                        "from "+database.getSystemSchema()+".table_constraints const " +
-                        "join "+database.getSystemSchema()+".key_column_usage col " +
-                        "on const.constraint_schema=col.constraint_schema " +
-                        "and const.table_name=col.table_name " +
-                        "and const.constraint_name=col.constraint_name " +
-                        "where const.constraint_catalog='" + database.correctObjectName(schema.getCatalogName(), Catalog.class) + "' " +
-                        "and const.constraint_schema='" + database.correctObjectName(schema.getSchema().getName(), Schema.class) + "' " +
-                        "and const.table_name='" + database.correctObjectName(example.getTable().getName(), Table.class) + "' " +
-                        "and const.constraint_name='" + database.correctObjectName(name, UniqueConstraint.class) + "'" +
-                        "order by ordinal_position";
+            sql = "select const.CONSTRAINT_NAME, COLUMN_NAME " +
+                    "from " + database.getSystemSchema() + ".table_constraints const " +
+                    "join " + database.getSystemSchema() + ".key_column_usage col " +
+                    "on const.constraint_schema=col.constraint_schema " +
+                    "and const.table_name=col.table_name " +
+                    "and const.constraint_name=col.constraint_name " +
+                    "where const.constraint_catalog='" + database.correctObjectName(schema.getCatalogName(), Catalog.class) + "' " +
+                    "and const.constraint_schema='" + database.correctObjectName(schema.getSchema().getName(), Schema.class) + "' " +
+                    "and const.table_name='" + database.correctObjectName(example.getTable().getName(), Table.class) + "' " +
+                    "and const.constraint_name='" + database.correctObjectName(name, UniqueConstraint.class) + "'" +
+                    "order by ordinal_position";
         } else if (database instanceof MSSQLDatabase) {
             sql = "select TC.CONSTRAINT_NAME as CONSTRAINT_NAME, CC.COLUMN_NAME as COLUMN_NAME from INFORMATION_SCHEMA.TABLE_CONSTRAINTS TC " +
                     "inner join INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE CC on TC.CONSTRAINT_NAME = CC.CONSTRAINT_NAME " +
