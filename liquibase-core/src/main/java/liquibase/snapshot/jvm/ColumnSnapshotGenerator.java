@@ -293,6 +293,11 @@ public class ColumnSnapshotGenerator extends JdbcSnapshotGenerator {
             decimalDigits = null;
         }
 
+        // joshszep - Hack tp prevent CHAR(1) from turning into BPCHAR(1) which redshift isn't a fan of.
+        if (database instanceof PostgresDatabase && columnTypeName.equalsIgnoreCase("BPCHAR")) {
+            columnTypeName = "CHAR";
+        }
+
         Integer radix = columnMetadataResultSet.getInt("NUM_PREC_RADIX");
 
         Integer characterOctetLength = columnMetadataResultSet.getInt("CHAR_OCTET_LENGTH");
