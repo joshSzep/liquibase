@@ -286,6 +286,13 @@ public class ColumnSnapshotGenerator extends JdbcSnapshotGenerator {
             decimalDigits = null;
         }
 
+        // joshszep - Hack to prevent FLOAT4(*,8) and FLOAT8(*,17) nonsense from screwing up PostgresDatabase
+        // and RedshiftDatabase (which extends from PostgresDatabase).
+        // Context: https://liquibase.jira.com/browse/CORE-1956
+        if (database instanceof PostgresDatabase) {
+            decimalDigits = null;
+        }
+
         Integer radix = columnMetadataResultSet.getInt("NUM_PREC_RADIX");
 
         Integer characterOctetLength = columnMetadataResultSet.getInt("CHAR_OCTET_LENGTH");
